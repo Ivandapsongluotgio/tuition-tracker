@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tính Tiền Học Thêm</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Be Vietnam Pro', sans-serif; -webkit-tap-highlight-color: transparent; background-color: #f8fafc; }
+        .btn-press { transition: transform 0.1s; }
+        .btn-press:active { transform: scale(0.95); }
+        .week-btn { transition: all 0.2s; border: 1px solid #e2e8f0; }
+        .week-active { 
+            background: linear-gradient(135deg, #6366f1, #8b5cf6); 
+            color: white; border: none; font-weight: 700;
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+        }
+        .status-1 { background-color: #ffffff; border: 2px solid #22c55e; color: #15803d; } 
+        .status-2 { background-color: #ffffff; border: 2px solid #ef4444; color: #b91c1c; opacity: 0.8; }
+        .status-3 { background-color: #f1f5f9; border: 2px solid #cbd5e1; color: #94a3b8; opacity: 0.6; }
+    </style>
+</head>
+<body class="pb-40">
+
+    <header class="bg-gradient-to-r from-blue-600 to-violet-600 text-white p-5 shadow-lg rounded-b-[2rem] sticky top-0 z-20">
+        <h1 class="text-xl font-bold text-center mb-4 flex items-center justify-center gap-2">📚 Tính Tiền Học Thêm</h1>
+
+        <div class="flex gap-3 mb-4">
+            <div class="w-1/2">
+                <label class="text-[10px] uppercase font-bold opacity-80 mb-1 block">Bắt đầu</label>
+                <input type="date" id="startDate" class="w-full bg-white/20 backdrop-blur text-white border border-white/30 rounded-lg p-2 text-sm font-semibold outline-none">
+            </div>
+            <div class="w-1/2">
+                <label class="text-[10px] uppercase font-bold opacity-80 mb-1 block">Kết thúc</label>
+                <input type="date" id="endDate" class="w-full bg-white/20 backdrop-blur text-white border border-white/30 rounded-lg p-2 text-sm font-semibold outline-none">
+            </div>
+        </div>
+
+        <div class="bg-white/10 backdrop-blur rounded-xl p-3 mb-3">
+            <div class="text-[10px] uppercase font-bold opacity-80 mb-2 text-center">Chọn lịch học cố định:</div>
+            <div class="flex justify-between gap-1" id="weekdayContainer"></div>
+        </div>
+        
+        <div class="flex items-center justify-between bg-white/10 rounded-lg p-2 px-3 backdrop-blur gap-2">
+            <div class="flex flex-col w-1/2 border-r border-white/20 pr-2">
+                <span class="text-[10px] opacity-80 uppercase font-bold mb-1">Thầy báo (buổi)</span>
+                <input type="number" id="teacherTotal" value="13" class="w-full h-9 text-center text-blue-700 font-bold rounded shadow-sm outline-none text-sm">
+            </div>
+
+            <div class="flex flex-col w-1/2 pl-2">
+                <span class="text-[10px] opacity-80 uppercase font-bold mb-1">Tiền Tài liệu</span>
+                <div class="relative w-full">
+                    <input type="tel" id="materialFee" value="0" placeholder="0" 
+                        oninput="formatCurrencyInput(this)"
+                        onfocus="if(this.value=='0') this.value=''" 
+                        onblur="if(this.value=='') this.value='0'"
+                        class="w-full h-9 pl-2 pr-6 text-right text-blue-700 font-bold rounded shadow-sm outline-none text-sm placeholder-blue-300/50 focus:ring-2 focus:ring-white/50 transition-all">
+                    <span class="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-bold text-blue-400 pointer-events-none">đ</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="p-4 max-w-md mx-auto">
+        <div class="flex justify-center gap-4 mb-4 text-xs font-medium text-gray-500">
+            <div class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-green-500"></span> Đi học</div>
+            <div class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-red-500"></span> Nghỉ</div>
+            <div class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-gray-400"></span> Lớp nghỉ</div>
+        </div>
+
+        <div id="calendarGrid" class="grid grid-cols-4 gap-3"></div>
+
+        <div id="emptyState" class="hidden text-center py-10">
+            <div class="text-4xl mb-2">👆</div>
+            <p class="text-gray-400 text-sm">Chọn <b>Thứ</b> ở trên để hiện lịch học</p>
+        </div>
+    </main>
+
+    <footer class="fixed bottom-0 left-0 w-full bg-white border-t border-gray-100 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] z-30 pb-safe rounded-t-[1.5rem]">
+        <div id="alertBox" class="hidden absolute -top-8 left-1/2 -translate-x-1/2 bg-yellow-100 text-yellow-800 px-4 py-1 rounded-full text-xs font-bold shadow-sm whitespace-nowrap border border-yellow-200">
+            ⚠️ <span id="diffText">Lệch số liệu</span>
+        </div>
+
+        <div class="p-5">
+            <div class="flex justify-between items-end mb-4">
+                <div>
+                    <div class="text-xs text-gray-400 font-medium mb-1">Tổng thực đóng</div>
+                    <div class="flex items-baseline gap-1">
+                        <span id="totalMoney" class="text-3xl font-black text-slate-800 tracking-tight">0</span>
+                        <span class="text-sm font-bold text-gray-500">vnđ</span>
+                    </div>
+                    <div id="feeDetail" class="text-[10px] text-gray-400 mt-1 italic">...</div>
+                </div>
+                <div class="text-right">
+                    <div class="flex flex-col text-xs font-medium text-gray-500">
+                        <span>Đi học: <b id="countAttend" class="text-green-600 text-sm">0</b></span>
+                        <span>Nghỉ: <b id="countAbsent" class="text-red-500 text-sm">0</b></span>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="copyReport()" class="btn-press w-full bg-slate-900 text-white py-3.5 rounded-xl font-bold text-sm shadow-xl flex items-center justify-center gap-2 hover:bg-slate-800">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                </svg>
+                Sao chép báo cáo gửi Zalo
+            </button>
+        </div>
+    </footer>
+
+    <script>
+        const CONFIG = { price: 30000 }; 
+        const DAYS = [ {v: 1, l: 'T2'}, {v: 2, l: 'T3'}, {v: 3, l: 'T4'}, {v: 4, l: 'T5'}, {v: 5, l: 'T6'}, {v: 6, l: 'T7'}, {v: 0, l: 'CN'} ];
+        let schedule = [];
+
+        window.onload = () => {
+            const today = new Date();
+            const start = new Date(today.getFullYear(), today.getMonth(), 1);
+            document.getElementById('startDate').valueAsDate = start;
+            document.getElementById('endDate').valueAsDate = today;
+
+            renderWeekButtons();
+            generateSchedule();
+            
+            document.getElementById('startDate').addEventListener('change', generateSchedule);
+            document.getElementById('endDate').addEventListener('change', generateSchedule);
+            document.getElementById('teacherTotal').addEventListener('input', recalc);
+        };
+
+        // --- HÀM FORMAT TIỀN KHI GÕ ---
+        function formatCurrencyInput(input) {
+            // 1. Lấy giá trị thô (chỉ giữ lại số)
+            let rawValue = input.value.replace(/\D/g, "");
+            
+            // 2. Nếu rỗng thì thôi
+            if (rawValue === "") {
+                input.value = "";
+                recalc();
+                return;
+            }
+
+            // 3. Format có dấu chấm (VN)
+            let formatted = new Intl.NumberFormat('vi-VN').format(rawValue);
+            input.value = formatted;
+            
+            // 4. Tính toán lại tổng ngay lập tức
+            recalc();
+        }
+
+        function renderWeekButtons() {
+            const container = document.getElementById('weekdayContainer');
+            container.innerHTML = DAYS.map(d => `
+                <button onclick="toggleDay(this)" data-val="${d.v}" 
+                    class="btn-press week-btn w-9 h-9 rounded-full bg-white text-gray-500 text-xs font-semibold flex items-center justify-center">
+                    ${d.l}
+                </button>
+            `).join('');
+        }
+
+        function toggleDay(btn) {
+            btn.classList.toggle('week-active');
+            generateSchedule();
+        }
+
+        function generateSchedule() {
+            const start = new Date(document.getElementById('startDate').value);
+            const end = new Date(document.getElementById('endDate').value);
+            const activeDays = Array.from(document.querySelectorAll('.week-active')).map(b => parseInt(b.dataset.val));
+            
+            schedule = [];
+            const grid = document.getElementById('calendarGrid');
+            const emptyState = document.getElementById('emptyState');
+            grid.innerHTML = ''; 
+
+            if (activeDays.length === 0) {
+                emptyState.classList.remove('hidden');
+                recalc(); return;
+            }
+            emptyState.classList.add('hidden');
+
+            let current = new Date(start);
+            while (current <= end) {
+                if (activeDays.includes(current.getDay())) {
+                    const dayItem = {
+                        dateStr: `${current.getDate()}/${current.getMonth() + 1}`,
+                        dayName: DAYS.find(d => d.v === current.getDay()).l,
+                        status: 1 
+                    };
+                    schedule.push(dayItem);
+                    
+                    const el = document.createElement('div');
+                    el.className = `btn-press cursor-pointer rounded-2xl p-3 flex flex-col items-center justify-between aspect-square shadow-sm transition-all status-1`;
+                    el.innerHTML = `
+                        <span class="text-[10px] font-bold uppercase opacity-60 tracking-wider">${dayItem.dayName}</span>
+                        <span class="text-xl font-bold">${current.getDate()}</span>
+                        <div class="emoji w-6 h-6 rounded-full flex items-center justify-center text-xs">✅</div>
+                    `;
+                    el.onclick = () => {
+                        dayItem.status++;
+                        if(dayItem.status > 3) dayItem.status = 1;
+                        el.className = `btn-press cursor-pointer rounded-2xl p-3 flex flex-col items-center justify-between aspect-square shadow-sm transition-all status-${dayItem.status}`;
+                        const emojiDiv = el.querySelector('.emoji');
+                        emojiDiv.innerText = dayItem.status === 1 ? '✅' : (dayItem.status === 2 ? '❌' : '⚪');
+                        recalc();
+                    };
+                    grid.appendChild(el);
+                }
+                current.setDate(current.getDate() + 1);
+            }
+            recalc();
+        }
+
+        function recalc() {
+            let attend = 0, absent = 0;
+            schedule.forEach(s => {
+                if(s.status === 1) attend++;
+                if(s.status === 2) absent++;
+            });
+
+            document.getElementById('countAttend').innerText = attend;
+            document.getElementById('countAbsent').innerText = absent;
+
+            // --- XỬ LÝ SỐ TIỀN CÓ DẤU CHẤM ---
+            // Lấy giá trị từ ô input, bỏ dấu chấm đi để thành số nguyên tính toán
+            const rawMaterial = document.getElementById('materialFee').value.replace(/\./g, "");
+            const materialFee = parseInt(rawMaterial) || 0;
+            
+            const total = (attend > 0 || absent > 0) ? (attend * CONFIG.price + materialFee) : 0;
+            
+            document.getElementById('totalMoney').innerText = total.toLocaleString('vi-VN');
+            
+            let detailText = `(${attend} buổi x 30k)`;
+            if (materialFee > 0) detailText += ` + ${materialFee.toLocaleString('vi-VN')}đ tài liệu`;
+            
+            document.getElementById('feeDetail').innerText = detailText;
+
+            const teacherSays = parseInt(document.getElementById('teacherTotal').value) || 0;
+            const myCount = attend + absent;
+            const diff = myCount - teacherSays;
+            const alertBox = document.getElementById('alertBox');
+            
+            if(schedule.length > 0 && diff !== 0) {
+                alertBox.classList.remove('hidden');
+                document.getElementById('diffText').innerText = diff > 0 ? `Dư ${diff} buổi` : `Thiếu ${Math.abs(diff)} buổi`;
+                alertBox.className = diff > 0 ? "absolute -top-8 left-1/2 -translate-x-1/2 bg-red-100 text-red-800 px-4 py-1 rounded-full text-xs font-bold shadow-sm whitespace-nowrap border border-red-200" : "absolute -top-8 left-1/2 -translate-x-1/2 bg-yellow-100 text-yellow-800 px-4 py-1 rounded-full text-xs font-bold shadow-sm whitespace-nowrap border border-yellow-200";
+            } else {
+                alertBox.classList.add('hidden');
+            }
+        }
+
+        function copyReport() {
+            let attend = 0;
+            let absentDates = [];
+            schedule.forEach(s => {
+                if(s.status === 1) attend++;
+                if(s.status === 2) absentDates.push(s.dateStr);
+            });
+            const total = document.getElementById('totalMoney').innerText;
+            const materialFee = document.getElementById('materialFee').value || "0";
+            
+            const text = `Gửi thầy/bố mẹ báo cáo học phí:\n📅 Từ ${document.getElementById('startDate').value} đến ${document.getElementById('endDate').value}\n------------------\n✅ Đi học: ${attend} buổi\n❌ Nghỉ: ${absentDates.length > 0 ? absentDates.join(', ') : 'Không nghỉ'}\n------------------\n💰 Học phí: ${attend} x 30k = ${(attend*30000).toLocaleString('vi-VN')}đ\n📚 Tài liệu: ${materialFee}đ\n👉 TỔNG CỘNG: ${total} vnđ`;
+            
+            navigator.clipboard.writeText(text).then(() => alert("Đã copy nội dung!"));
+        }
+    </script>
+</body>
+</html>
