@@ -9,7 +9,7 @@
     <style>
         body { font-family: 'Be Vietnam Pro', sans-serif; -webkit-tap-highlight-color: transparent; background-color: #f8fafc; }
         
-        /* CSS CHO NÚT CHỌN THỨ (Checkbutton) */
+        /* CSS NÚT CHỌN THỨ */
         .day-check-btn {
             height: 44px;
             border-radius: 10px;
@@ -19,28 +19,17 @@
             font-weight: 600;
             font-size: 14px;
             transition: all 0.15s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            display: flex; align-items: center; justify-content: center;
             box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
-        
-        /* Khi được chọn (Active) */
         .day-check-btn.active {
-            background: #4f46e5; /* Màu chàm đậm */
-            color: white;
-            border-color: #4f46e5;
-            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.4);
-            transform: translateY(-1px);
+            background: #4f46e5; color: white; border-color: #4f46e5;
+            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.4); transform: translateY(-1px);
         }
-
-        /* Ẩn nút tăng giảm input number */
-        input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         
+        /* Ẩn nút input number */
+        input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         .btn-press:active { transform: scale(0.96); }
-        .status-1 { background-color: #ffffff; border: 2px solid #22c55e; color: #15803d; } 
-        .status-2 { background-color: #fee2e2; border: 2px solid #ef4444; color: #b91c1c; }
-        .status-3 { background-color: #f1f5f9; border: 2px solid #cbd5e1; color: #94a3b8; }
     </style>
 </head>
 <body class="pb-44">
@@ -50,18 +39,17 @@
 
         <div class="flex gap-3 mb-5">
             <div class="w-1/2">
-                <label class="text-[10px] uppercase font-bold text-slate-400 mb-1 block pl-1">Ngày bắt đầu</label>
+                <label class="text-[10px] uppercase font-bold text-slate-400 mb-1 block pl-1">Bắt đầu</label>
                 <input type="date" id="startDate" class="w-full bg-slate-50 border border-slate-200 text-slate-700 rounded-xl p-2.5 text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
             <div class="w-1/2">
-                <label class="text-[10px] uppercase font-bold text-slate-400 mb-1 block pl-1">Ngày kết thúc</label>
+                <label class="text-[10px] uppercase font-bold text-slate-400 mb-1 block pl-1">Kết thúc</label>
                 <input type="date" id="endDate" class="w-full bg-slate-50 border border-slate-200 text-slate-700 rounded-xl p-2.5 text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
         </div>
 
         <div class="mb-5">
-            <div class="text-[10px] uppercase font-bold text-slate-400 mb-2 text-center">Chọn các thứ có lịch học:</div>
-            
+            <div class="text-[10px] uppercase font-bold text-slate-400 mb-2 text-center">Lịch học trong tuần:</div>
             <div class="grid grid-cols-7 gap-1.5">
                 <button class="day-check-btn" onclick="toggleWeekDay(this, 1)">T2</button>
                 <button class="day-check-btn" onclick="toggleWeekDay(this, 2)">T3</button>
@@ -103,9 +91,7 @@
 
         <div id="emptyState" class="flex flex-col items-center justify-center py-10 opacity-60">
             <div class="text-6xl mb-4 grayscale">📅</div>
-            <p class="text-slate-500 text-sm font-medium text-center">
-                Vui lòng chọn <b>Thứ</b> ở trên<br>để hiện danh sách ngày.
-            </p>
+            <p class="text-slate-500 text-sm font-medium text-center">Vui lòng chọn <b>Thứ</b> ở trên<br>để hiện danh sách ngày.</p>
         </div>
     </main>
 
@@ -139,8 +125,7 @@
     </footer>
 
     <script>
-        // Key lưu trữ mới tinh để tránh lỗi cũ
-        const STORAGE_KEY = 'tuition_v8_clean'; 
+        const STORAGE_KEY = 'tuition_v9_vn'; 
         const CONFIG = { price: 30000 }; 
         const DAY_LABELS = {1:'Thứ 2', 2:'Thứ 3', 3:'Thứ 4', 4:'Thứ 5', 5:'Thứ 6', 6:'Thứ 7', 0:'CN'};
         
@@ -149,43 +134,35 @@
 
         window.addEventListener('DOMContentLoaded', () => {
             loadSavedData();
-            
+            // Events
             document.getElementById('startDate').addEventListener('change', () => { generateSchedule(); saveData(); });
             document.getElementById('endDate').addEventListener('change', () => { generateSchedule(); saveData(); });
             document.getElementById('teacherTotal').addEventListener('input', () => { recalc(); saveData(); });
         });
 
-        // 1. LOGIC CHỌN THỨ (Fix lỗi 100%)
+        // Toggle Thứ
         function toggleWeekDay(btn, dayValue) {
             dayValue = parseInt(dayValue);
-            
-            // Nếu đã có trong mảng thì xóa đi
             if (activeWeekDays.includes(dayValue)) {
                 activeWeekDays = activeWeekDays.filter(d => d !== dayValue);
                 btn.classList.remove('active');
             } else {
-                // Chưa có thì thêm vào
                 activeWeekDays.push(dayValue);
                 btn.classList.add('active');
             }
-            
-            generateSchedule();
-            saveData();
+            generateSchedule(); saveData();
         }
 
-        // 2. KHÔI PHỤC TRẠNG THÁI NÚT
+        // Khôi phục nút
         function restoreButtonsUI() {
-            // Reset tất cả nút về trạng thái thường
             document.querySelectorAll('.day-check-btn').forEach(b => b.classList.remove('active'));
-            
-            // Bật sáng các nút đã lưu
             activeWeekDays.forEach(dayVal => {
                 const targetBtn = document.querySelector(`button[onclick="toggleWeekDay(this, ${dayVal})"]`);
                 if(targetBtn) targetBtn.classList.add('active');
             });
         }
 
-        // 3. TẠO LỊCH (Logic cốt lõi)
+        // Tạo lịch
         function generateSchedule() {
             const startVal = document.getElementById('startDate').value;
             const endVal = document.getElementById('endDate').value;
@@ -195,92 +172,60 @@
             
             grid.innerHTML = ''; 
 
-            // Nếu thiếu dữ liệu hoặc chưa chọn thứ nào
             if (!startVal || !endVal || activeWeekDays.length === 0) {
-                emptyState.classList.remove('hidden');
-                legend.classList.add('hidden');
-                schedule = []; // Xóa data lịch
-                recalc(); 
-                return;
+                emptyState.classList.remove('hidden'); legend.classList.add('hidden');
+                schedule = []; recalc(); return;
             }
 
-            // Ẩn màn hình trống, hiện chú thích
-            emptyState.classList.add('hidden');
-            legend.classList.remove('hidden');
+            emptyState.classList.add('hidden'); legend.classList.remove('hidden');
 
-            // Xử lý ngày giờ chuẩn (đặt về 00:00:00 để tránh lệch múi giờ)
             const start = new Date(startVal); start.setHours(0,0,0,0);
             const end = new Date(endVal); end.setHours(0,0,0,0);
             let current = new Date(start);
-            
-            // Xóa lịch cũ để tạo mới (nhưng nếu có trạng thái đã lưu thì nên giữ lại? 
-            // Ở bản đơn giản này ta tạo mới để tránh lỗi, người dùng tích lại nhanh thôi)
-            // Cải tiến: Ta sẽ tạo mới nhưng mapping lại trạng thái cũ nếu trùng ngày
-            
             let tempSchedule = [];
 
             while (current <= end) {
                 if (activeWeekDays.includes(current.getDay())) {
-                    // Format dd/mm
+                    // Format VN: dd/mm
                     const d = current.getDate();
                     const m = current.getMonth() + 1;
-                    const dateStr = `${d < 10 ? '0'+d : d}/${m < 10 ? '0'+m : m}`;
+                    const dateDisplay = `${d < 10 ? '0'+d : d}/${m < 10 ? '0'+m : m}`;
                     
                     const dayItem = {
-                        fullDate: new Date(current), // Lưu date object để sort
-                        dateStr: dateStr,
+                        dateStr: dateDisplay, // Lưu dạng 01/09
+                        fullDateStr: formatDateVN(current), // Lưu dạng 01/09/2025 cho báo cáo
                         dayName: DAY_LABELS[current.getDay()],
-                        status: 1 // 1: Đi học
+                        status: 1 
                     };
                     
-                    // Kiểm tra xem trong schedule cũ có ngày này không để giữ trạng thái
-                    const oldItem = schedule.find(s => s.dateStr === dateStr);
+                    // Giữ trạng thái cũ nếu có
+                    const oldItem = schedule.find(s => s.dateStr === dateDisplay);
                     if(oldItem) dayItem.status = oldItem.status;
 
                     tempSchedule.push(dayItem);
                 }
                 current.setDate(current.getDate() + 1);
             }
-            
             schedule = tempSchedule;
-            renderGrid();
-            recalc();
+            renderGrid(); recalc();
         }
 
         function renderGrid() {
             const grid = document.getElementById('calendarGrid');
-            grid.innerHTML = '';
-            
-            if(schedule.length === 0) {
-                document.getElementById('emptyState').classList.remove('hidden');
-                document.getElementById('emptyState').querySelector('p').innerHTML = "Không tìm thấy ngày nào trùng khớp<br>trong khoảng thời gian này.";
-                return;
-            }
-
-            schedule.forEach((item, index) => {
+            schedule.forEach((item) => {
                 const el = document.createElement('div');
-                // Set class ban đầu
                 updateItemClass(el, item.status);
-                
                 el.innerHTML = `
                     <span class="text-[10px] font-bold uppercase opacity-60 tracking-wider">${item.dayName}</span>
                     <span class="text-xl font-bold my-1">${item.dateStr.split('/')[0]}</span>
                     <span class="text-[10px] opacity-50">${item.dateStr.split('/')[1]}</span>
                     <div class="emoji mt-1 w-6 h-6 rounded-full flex items-center justify-center text-xs shadow-sm"></div>
                 `;
-                
-                // Set icon ban đầu
                 updateItemIcon(el, item.status);
-
                 el.onclick = () => {
-                    item.status++;
-                    if(item.status > 3) item.status = 1;
-                    updateItemClass(el, item.status);
-                    updateItemIcon(el, item.status);
+                    item.status++; if(item.status > 3) item.status = 1;
+                    updateItemClass(el, item.status); updateItemIcon(el, item.status);
                     recalc();
-                    // Lưu lại trạng thái lịch chi tiết (Advanced)
-                    // Ở bản này ta chỉ lưu cấu hình chung, lịch chi tiết sẽ reset khi đổi ngày start/end
-                    // Nhưng để trải nghiệm tốt nhất, ta cứ recalc thôi.
                 };
                 grid.appendChild(el);
             });
@@ -300,7 +245,6 @@
             else { ico.className = "emoji mt-1 w-5 h-5 rounded-full flex items-center justify-center text-xs bg-slate-200"; ico.innerText = '➖'; }
         }
 
-        // 4. LƯU & TẢI
         function saveData() {
             const data = {
                 start: document.getElementById('startDate').value,
@@ -315,34 +259,25 @@
         function loadSavedData() {
             const saved = localStorage.getItem(STORAGE_KEY);
             if (!saved) { 
-                // Mặc định: Đầu tháng đến nay
                 const today = new Date();
                 const start = new Date(today.getFullYear(), today.getMonth(), 1);
-                // Format YYYY-MM-DD thủ công để tránh lệch múi giờ
+                // Dùng en-CA để set value cho input type date (bắt buộc YYYY-MM-DD)
                 document.getElementById('startDate').value = start.toLocaleDateString('en-CA'); 
                 document.getElementById('endDate').value = today.toLocaleDateString('en-CA');
                 return; 
             }
-
             const data = JSON.parse(saved);
             if(data.start) document.getElementById('startDate').value = data.start;
             if(data.end) document.getElementById('endDate').value = data.end;
             if(data.teacher) document.getElementById('teacherTotal').value = data.teacher;
             if(data.material) document.getElementById('materialFee').value = data.material;
             if (Array.isArray(data.activeDays)) activeWeekDays = data.activeDays;
-            
-            restoreButtonsUI();
-            generateSchedule();
+            restoreButtonsUI(); generateSchedule();
         }
 
-        // 5. TÍNH TIỀN & FORMAT
         function recalc() {
             let attend = 0, absent = 0;
-            schedule.forEach(s => {
-                if(s.status === 1) attend++;
-                if(s.status === 2) absent++;
-            });
-
+            schedule.forEach(s => { if(s.status === 1) attend++; if(s.status === 2) absent++; });
             document.getElementById('countAttend').innerText = attend;
             document.getElementById('countAbsent').innerText = absent;
 
@@ -351,12 +286,10 @@
             const total = (attend > 0 || absent > 0) ? (attend * CONFIG.price + materialFee) : 0;
             
             document.getElementById('totalMoney').innerText = total.toLocaleString('vi-VN');
-            
             let detailText = `(${attend} buổi x 30k)`;
             if (materialFee > 0) detailText += ` + ${materialFee.toLocaleString('vi-VN')}đ tài liệu`;
             document.getElementById('feeDetail').innerText = detailText;
 
-            // Cảnh báo
             const teacherSays = parseInt(document.getElementById('teacherTotal').value) || 0;
             const myCount = attend + absent;
             const diff = myCount - teacherSays;
@@ -365,9 +298,7 @@
             if(schedule.length > 0 && diff !== 0) {
                 alertBox.classList.remove('hidden');
                 document.getElementById('diffText').innerText = diff > 0 ? `Dư ${diff} buổi` : `Thiếu ${Math.abs(diff)} buổi`;
-            } else {
-                alertBox.classList.add('hidden');
-            }
+            } else { alertBox.classList.add('hidden'); }
         }
 
         function formatCurrencyInput(input) {
@@ -375,6 +306,14 @@
             if (rawValue === "") { input.value = ""; recalc(); saveData(); return; }
             input.value = new Intl.NumberFormat('vi-VN').format(rawValue);
             recalc(); saveData();
+        }
+
+        // Helper: Format ngày chuẩn Việt Nam (dd/mm/yyyy)
+        function formatDateVN(dateObj) {
+            const d = dateObj.getDate();
+            const m = dateObj.getMonth() + 1;
+            const y = dateObj.getFullYear();
+            return `${d < 10 ? '0'+d : d}/${m < 10 ? '0'+m : m}/${y}`;
         }
 
         function copyReport() {
@@ -387,13 +326,13 @@
             const total = document.getElementById('totalMoney').innerText;
             const materialFee = document.getElementById('materialFee').value || "0";
             
-            // Lấy ngày định dạng Việt Nam từ input
-            const sDate = new Date(document.getElementById('startDate').value);
-            const eDate = new Date(document.getElementById('endDate').value);
-            const sStr = `${sDate.getDate()}/${sDate.getMonth()+1}`;
-            const eStr = `${eDate.getDate()}/${eDate.getMonth()+1}`;
+            // Lấy ngày chuẩn VN từ input để đưa vào báo cáo
+            const sVal = document.getElementById('startDate').value;
+            const eVal = document.getElementById('endDate').value;
+            const sDate = sVal ? formatDateVN(new Date(sVal)) : "...";
+            const eDate = eVal ? formatDateVN(new Date(eVal)) : "...";
 
-            const text = `Gửi thầy/bố mẹ báo cáo học phí:\n📅 Từ ${sStr} đến ${eStr}\n------------------\n✅ Đi học: ${attend} buổi\n❌ Nghỉ: ${absentDates.length > 0 ? absentDates.join(', ') : 'Không nghỉ'}\n------------------\n💰 Học phí: ${attend} x 30k = ${(attend*30000).toLocaleString('vi-VN')}đ\n📚 Tài liệu: ${materialFee}đ\n👉 TỔNG CỘNG: ${total} vnđ`;
+            const text = `Gửi thầy/bố mẹ báo cáo học phí:\n📅 Từ ${sDate} đến ${eDate}\n------------------\n✅ Đi học: ${attend} buổi\n❌ Nghỉ: ${absentDates.length > 0 ? absentDates.join(', ') : 'Không nghỉ'}\n------------------\n💰 Học phí: ${attend} x 30k = ${(attend*30000).toLocaleString('vi-VN')}đ\n📚 Tài liệu: ${materialFee}đ\n👉 TỔNG CỘNG: ${total} vnđ`;
             navigator.clipboard.writeText(text).then(() => alert("Đã copy nội dung!"));
         }
     </script>
